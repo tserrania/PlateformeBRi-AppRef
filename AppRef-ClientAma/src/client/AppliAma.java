@@ -36,7 +36,7 @@ class AppliAma {
 			
 		// réception/affichage de la question
 			System.out.println(sin.readLine());
-		// saisie clavier/envoie au service de la réponse
+		// saisie clavier/envoi au service de la réponse
 			sout.println(clavier.readLine());
 		// réception/affichage de la réponse
 			System.out.println(sin.readLine());

@@ -18,26 +18,38 @@ import java.util.Vector;
  */
 public class ServiceRegistry {
 
+	private static List<ServiceEtat> servicesClasses;
+
 	static {
-		servicesClasses = new Vector<Class<?>>();
+		servicesClasses = new Vector<ServiceEtat>();
 	}
-	private static List<Class<?>> servicesClasses;
+	
+
+	/**
+	 * Contrôle que le service appartient au package correspondant au login
+	 * @param service La classe service
+	 * @param login Le login de celui qui effectue l'action sur le service
+	 * @throws Exception si le service n'appartient pas au bon package
+	 */
+	private static void validLogin(Class<?> service, String login) throws Exception {
+		if (!service.getPackage().getName().equals(login)) {
+			throw new Exception("Le service n'appartient pas au bon package.");
+		}
+	}
 
 	/**
 	 * Contrôle de la norme BLTi
 	 * @param service La classe service
 	 * @param login Le login de celui qui a créée le service
-	 * @throws Exception si le service n'est pas valique
+	 * @throws Exception si le service n'est pas valide
 	 */
 	private static void validService(Class<?> service, String login) throws Exception {
 
 		// vérifier la conformité par introspection
 		// si non conforme --> exception avec message clair
 		// si conforme, ajout au vector
+		validLogin(service, login);
 		
-		if (!service.getPackage().getName().equals(login)) {
-			throw new Exception("Le service n'appartient pas au bon package.");
-		}
 		boolean ok = false;
 		for (Class<?> c : service.getInterfaces()) {
 			if (c==Service.class) {
@@ -66,7 +78,7 @@ public class ServiceRegistry {
 		if (!Modifier.isPublic(m.getModifiers())) {
 			throw new Exception("Le service n'a pas de constructeur public.");
 		}
-		
+
 		ok = false;
 		for(Field f : service.getDeclaredFields()) {
 			if (f.getType()==Socket.class) {
@@ -75,7 +87,7 @@ public class ServiceRegistry {
 				}
 			}
 		}
-		
+
 		if (!ok) {
 			throw new Exception("Il n'y a pas de champ Socket private.");
 		}
@@ -99,7 +111,7 @@ public class ServiceRegistry {
 		if (toStringue.getExceptionTypes().length>0) {
 			throw new Exception("La méthode toStringue peut générer des exceptions.");
 		}
-		
+
 	}
 	/**
 	 * ajoute une classe de service après contrôle de la norme BLTi (ou la remplace si celle-ci existe déjà)
@@ -109,47 +121,80 @@ public class ServiceRegistry {
 	 */
 	public static void addService(Class<?> service, String login) throws Exception {
 		validService(service, login);
+		ServiceEtat sr = null;
 		synchronized (servicesClasses) {
-			Class<?> cr = null;
-			for (Class<?> c : servicesClasses) {
-				if (c.getName().equals(service.getName())) {
-					cr = c;
+			for (ServiceEtat s : servicesClasses) {
+				if (s.getService().getName().equals(service.getName())) {
+					sr = s;
 					break;
 				}
 			}
-			servicesClasses.remove(cr);
 		}
-		servicesClasses.add(service);
+		if (sr!=null)  {
+			sr.setService(service);
+		}
+		else {
+			servicesClasses.add(new ServiceEtat(service));
+		}
 	}
-	
-	
+
+	/**
+	 * Change l'état (démarré/arrêté) du service désiré
+	 * @param numService Le numéro du service en question
+	 * @param login Le login de celui qui veut effectuer l'action
+	 * @return l'état du service après changement
+	 * @throws Exception 
+	 */
+	public static boolean changeStateService(int numService, String login) throws Exception {
+		ServiceEtat s = servicesClasses.get(numService-1);
+		validLogin(s.getService(), login);
+		if (s.estActif()) {
+			s.arreter();
+		} else {
+			s.demarrer();
+		}
+		return s.estActif();
+	}
+
 	/**
 	 * Supprime le service désiré
-	 * @param numService
-	 * @throws Exception
+	 * @param login Le login de celui qui veut effectuer l'action
+	 * @param numService Le numéro du service en question
+	 * @throws Exception 
 	 */
-	public static void delService(int numService) throws Exception {
-		servicesClasses.remove(numService-1);
+	public static void delService(int numService, String login) throws Exception {
+		ServiceEtat s = servicesClasses.get(numService-1);
+		validLogin(s.getService(), login);
+		servicesClasses.remove(s);
 	}
 	
 	/**
 	 * Récupérer un service
 	 * @param numService Le numéro du service
 	 * @return La classe de service (numService -1)	
+	 * @throws Exception 
 	 */
-	public static Class<?> getServiceClass(int numService) {
-		return servicesClasses.get(numService-1);
+	public static Class<?> getServiceClass(int numService) throws Exception {
+		ServiceEtat s = servicesClasses.get(numService-1);
+		if (!s.estActif()) {
+			throw new Exception("Le service est indisponible.");
+		}
+		return s.getService();
 	}
-	
+
 	/**
 	 * @return une chaine représentant la liste des services existants
 	 */
 	public static String toStringue() {
 		String result = "Activités présentes : ##";
 		int i = 0;
-		for (Class<?> c : servicesClasses)  {
+		for (ServiceEtat s : servicesClasses)  {
 			try {
-				result += (i+1)+" - "+c.getMethod("toStringue").invoke(null)+"##";
+				result += (i+1);
+				if (!s.estActif()) {
+					result += " [Indisponible]";
+				}
+				result += " - "+s.getService().getMethod("toStringue").invoke(null)+"##";
 			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException
 					| NoSuchMethodException | SecurityException e) {
 				e.printStackTrace();

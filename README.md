@@ -1,7 +1,7 @@
 # PlateformeBRi-AppRef
 Une plateforme de gestion de services dynamiques
 
-# Fait
+# Terminé
 
 ## Serveur BRi
 
@@ -12,6 +12,8 @@ Une plateforme de gestion de services dynamiques
 - Fournir un nouveau service
 - Mettre-à-jour un service
 - Déclarer un changement d’adresse de son serveur ftp
+- Démarrer/arrêter un service
+- Désinstaller un service.
 
 ## Client Amateur
 
@@ -20,12 +22,6 @@ Une plateforme de gestion de services dynamiques
 - Service de randomisation de texte
 
 # A faire
-
-## Client Programmeur
-
-(Optionnel)
-- Démarrer/arrêter un service
-- Désinstaller un service.
 
 ## Client Amateur
 

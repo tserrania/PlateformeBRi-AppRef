@@ -48,7 +48,10 @@ public class ServiceBRiProg implements ServiceBRi {
 				while (true){
 					msg += "Que voulez-vous faire ?##"
 							+ "1 - Ajouter / Mettre à jour un service##"
-							+ "2 - Changer de serveur ftp";
+							+ "2 - Changer de serveur ftp##"
+							+ "3 - Démarrer / Arrêter un service##"
+							+ "4 - Supprimer un service##"
+							+ "5 - Quitter";
 					out.println(msg);
 					String choix = in.readLine();
 					try {
@@ -71,18 +74,45 @@ public class ServiceBRiProg implements ServiceBRi {
 							url = in.readLine();
 							ProgList.changeURL(login, url);
 							msg = "URL changée !##";
-						} else {
+						}
+						else if (choix.equals("3")) {
+							msg = ServiceRegistry.toStringue()+"##Tapez le numéro de service désiré :";
+							out.println(msg);
+							msg = "";
+							int choix_service = Integer.parseInt(in.readLine());
+							
+							boolean etat = ServiceRegistry.changeStateService(choix_service, login);
+							if (etat) {
+								msg = "Service démarré !##";
+							}
+							else {
+								msg = "Service arrêté !##";
+							}
+							
+						} 
+						else if (choix.equals("4")) {
+							msg = ServiceRegistry.toStringue()+"##Tapez le numéro de service désiré :";
+							out.println(msg);
+							int choix_service = Integer.parseInt(in.readLine());
+							msg = "";
+							ServiceRegistry.delService(choix_service, login);
+							msg = "Service supprimé !##";
+						} 
+						else if (choix.equals("5")) {
+							break;
+						} 
+						else {
 							msg = "Choix invalide !##";
 						}
 
 					} catch (Exception e) {
-						msg += e.toString().replace("\n", "##")+"##";
+						msg += e.getMessage().replace("\n", "##")+"##";
 					}
 				}
 			} else {
 				out.println("Login ou mot de passe incorrect.");
-				client.close();
 			}
+			client.close();
 
 		} catch (IOException e){
 			e.printStackTrace();
