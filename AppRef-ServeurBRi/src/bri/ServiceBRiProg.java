@@ -8,13 +8,19 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.jar.JarFile;
 
 import login.ProgList;
+
+/*
+ * Arguments à ajouter à la JVM
+ * -XX:+TraceClassLoading
+ * -XX:+TraceClassUnloading
+ */
 
 /**
  * Le service BRi côté client programmeur
  * @author tyefen
- *
  */
 public class ServiceBRiProg implements ServiceBRi {
 
@@ -67,6 +73,8 @@ public class ServiceBRiProg implements ServiceBRi {
 							msg += classeChargée.getName()+"##";
 							ServiceRegistry.addService(classeChargée, login);
 							msg += "Classe chargée.##";
+							urlcl.close();
+							System.gc(); //Eventuellement pour décharger des classes
 						}
 						else if (choix.equals("2")) {
 							msg = "Nouvelle URL :";
@@ -97,6 +105,7 @@ public class ServiceBRiProg implements ServiceBRi {
 							msg = "";
 							ServiceRegistry.delService(choix_service, login);
 							msg = "Service supprimé !##";
+							System.gc(); //Pour décharger des classes
 						} 
 						else if (choix.equals("5")) {
 							break;
@@ -106,7 +115,8 @@ public class ServiceBRiProg implements ServiceBRi {
 						}
 
 					} catch (Exception e) {
-						msg += e.getMessage().replace("\n", "##")+"##";
+						msg += e.toString().replace("\n", "##")+"##";
+						System.gc();
 					}
 				}
 			} else {

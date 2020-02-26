@@ -34,14 +34,14 @@ class AppliAma {
 		// saisie/envoie du choix
 			sout.println(clavier.readLine());
 			
-		// réception/affichage de la question
-			System.out.println(sin.readLine());
-		// saisie clavier/envoi au service de la réponse
-			sout.println(clavier.readLine());
-		// réception/affichage de la réponse
-			System.out.println(sin.readLine());
-				
-			
+			while (true) {
+				// réception/affichage de la question
+				String lnnext = sin.readLine();
+				if (lnnext==null) {break;}
+				System.out.println(lnnext.replaceAll("##", "\n"));
+				// saisie clavier/envoi au service de la réponse
+				sout.println(clavier.readLine());
+			}
 		}
 		catch (IOException e) { System.err.println("Fin de la connexion"); }
 		// Refermer dans tous les cas la socket
