@@ -1,12 +1,14 @@
 package eux;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
+import java.util.Scanner;
 
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -19,17 +21,118 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
-
 import bri.Service;
 
 public class ServiceAnalyseXML implements Service {
 
+	private static int TAB_LENGTH = 4;
+
 	private Socket client;
+
+	public List<String> searchForErrors(InputStreamReader xmlFile) {
+		Scanner sc = new Scanner(xmlFile);
+		StringBuffer docBuf = new StringBuffer();
+		while (sc.hasNextLine()) {
+			docBuf.append(sc.nextLine());
+			docBuf.append('\n');
+		}
+		String doc = docBuf.toString();
+		System.out.println(doc);
+		sc.close();
+		List<String> e = new ArrayList<>();
+		int line = 1;
+		int column = 1;
+		boolean inTag = false;
+		boolean inTagName = false;
+		boolean tagInfo = false;
+		boolean tagClose = false;
+		boolean tagOrphean = false;
+		String tagName = "";
+		List<String> tags = new ArrayList<>();
+		for (int i=0; i<doc.length(); ++i) {
+			char c = doc.charAt(i);
+			if (c=='<'){
+				if (inTag) {
+					e.add("'<' dans la déclaration d'une balise. ligne "+line+", colonne "+column);
+				} else {
+					inTag = true;
+					inTagName = true;
+				}
+			} else if (c=='>'){
+				if (!inTag) {
+					e.add("'>' sans ouverture de balise. ligne "+line+", colonne "+column);
+				} else {
+					if (tagInfo) {
+						if (doc.charAt(i-1)!='?') {
+							e.add("La balise info ne se ferme pas correctement. "+line+", colonne "+column);
+						}
+					} else if (tagClose) {
+						if (!tags.get(tags.size()-1).equals(tagName)) {
+							e.add("Nom de balise fermante différent de la balise ouvrante. ligne "+line+", colonne "+column);
+						}
+						tags.remove(tags.size()-1);
+					} else if (inTagName && !tagOrphean) {
+						tags.add(tagName);
+					}
+					inTag = false;
+					tagInfo = false;
+					tagClose = false;
+					inTagName = false;
+					tagOrphean = false;
+					tagName = "";
+				}
+			} else if (c=='/'){
+				if (inTag && !tagInfo) {
+					try {
+						if (doc.charAt(i-1)=='<') {
+							tagClose = true;
+						} else if (doc.charAt(i+1)=='>') {
+							if (tagClose) {
+								e.add("Une balise ne peut être orpheline et fermante. ligne "+line+", colonne "+column);
+							} else {
+								tagOrphean = true;
+							}
+						} else {
+							e.add("Caractère '/' invalide dans la déclaration d'une balise. ligne "+line+", colonne "+column);
+						}
+					} catch (Exception e2) {
+						e.add("Caractère '/' invalide dans la déclaration d'une balise. ligne "+line+", colonne "+column);
+					}
+				}
+			} else if (c=='?'){
+				if (inTag) {
+					try {
+						if (doc.charAt(i-1)=='<') {
+							tagInfo = true;
+							inTagName = false;
+						} 
+					} catch (Exception e2) {
+						
+					}
+				}
+			}
+			else if (c==' ' || c=='\n' || c=='\t'){
+				if (inTag) {
+					inTagName = false;
+				}
+			} else {
+				if (inTag) {
+					if (inTagName) {
+						tagName += c;
+					}
+				}
+			}
+			if (c=='\n'){
+				++line;
+				column = 1;
+			} else if (c=='\t') {
+				column += TAB_LENGTH;
+			}else {
+				++column;
+			}
+		}
+		return e;
+	}
 
 	public ServiceAnalyseXML(Socket client) {
 		this.client = client;
@@ -46,19 +149,12 @@ public class ServiceAnalyseXML implements Service {
 				DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 				DocumentBuilder builder = factory.newDocumentBuilder();
 
-
-
 				out.println("Quel fichier XML voulez-vous analyser ?");
-				InputStream xmlFile = new URL(in.readLine()).openStream();
-				Document document;
-				document = builder.parse(xmlFile);
-				document.getDocumentElement().normalize();
-				Element root = document.getDocumentElement();
-				NodeList elts = root.getChildNodes();
-				String msg = "Il y a "+elts.getLength()+" éléments.\n";
-				for (int i = 0; i<elts.getLength(); ++i) {
-					Node n = elts.item(i);
-					msg += n.getTextContent()+"\n";
+				InputStreamReader xmlFile = new InputStreamReader(new URL(in.readLine()).openStream());
+				List<String> listE = searchForErrors(xmlFile);
+				String msg = "Il y a "+listE.size()+" erreur(s)\n";
+				for (String e : listE) {
+					msg+= e.toString()+'\n';
 				}
 				out.println("A qui voulez-vous envoyer le rapport ?");
 				final String to = in.readLine();
@@ -95,12 +191,10 @@ public class ServiceAnalyseXML implements Service {
 					e.printStackTrace();
 				}
 				out.println("Rapport envoyé !");
-			} catch (SAXException e) {
-				out.println("Fichier invalide !");
 			} catch (ParserConfigurationException e) {
 				out.println("Erreur du service...");
 			}
-
+			in.readLine();
 		} catch (IOException e) {
 
 		} 

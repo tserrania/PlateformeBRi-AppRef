@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.jar.JarFile;
@@ -74,7 +75,6 @@ public class ServiceBRiProg implements ServiceBRi {
 							ServiceRegistry.addService(classeChargée, login);
 							msg += "Classe chargée.##";
 							urlcl.close();
-							System.gc(); //Eventuellement pour décharger des classes
 						}
 						else if (choix.equals("2")) {
 							msg = "Nouvelle URL :";
@@ -105,7 +105,6 @@ public class ServiceBRiProg implements ServiceBRi {
 							msg = "";
 							ServiceRegistry.delService(choix_service, login);
 							msg = "Service supprimé !##";
-							System.gc(); //Pour décharger des classes
 						} 
 						else if (choix.equals("5")) {
 							break;
@@ -118,6 +117,7 @@ public class ServiceBRiProg implements ServiceBRi {
 						msg += e.toString().replace("\n", "##")+"##";
 						System.gc();
 					}
+					System.gc(); //Eventuellement pour décharger des classes
 				}
 			} else {
 				out.println("Login ou mot de passe incorrect.");
@@ -125,7 +125,6 @@ public class ServiceBRiProg implements ServiceBRi {
 			client.close();
 
 		} catch (IOException e){
-			e.printStackTrace();
 		}
 	}
 

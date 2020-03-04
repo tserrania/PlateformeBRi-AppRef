@@ -20,11 +20,11 @@ Une plateforme de gestion de services dynamiques
 - Afficher la liste des services
 - Service d'inversion de texte
 - Service de randomisation de texte
+- Service analyse de fichier xml
 
 # A faire
 
 ## Client Amateur
 
 (Optionnel)
-- Service analyse de fichier xml
 - Service de messagerie

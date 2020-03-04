@@ -39,9 +39,12 @@ public class ServiceRandom implements Service {
 			}
 			
 			out.println(line);
+			in.readLine();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		}
+		try {
+			client.close();
+		} catch (IOException e) {
 		}
 	}
 	
