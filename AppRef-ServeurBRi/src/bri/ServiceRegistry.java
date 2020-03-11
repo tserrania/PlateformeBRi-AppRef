@@ -72,6 +72,12 @@ public class ServiceRegistry {
 		catch (Exception e) {
 			throw new Exception("Le service n'a pas de constructeur prenant une socket.");
 		}
+		try {
+			m.newInstance(new Socket());
+		}
+		catch (Exception e) {
+			throw new Exception("Le service ne peut pas s'initialiser.");
+		}
 		if (m.getExceptionTypes().length>0) {
 			throw new Exception("Le service a un constructeur pouvant générer des exceptions.");
 		}

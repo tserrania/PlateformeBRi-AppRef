@@ -37,8 +37,7 @@ public class ServiceBRiAma implements ServiceBRi {
 				((Service) ServiceRegistry.getServiceClass(choix).getConstructor(Socket.class).newInstance(client)).run();
 			}
 			catch (Exception e) {
-				e.printStackTrace();
-				client.close();
+				out.println(e.getMessage());
 			}
 			System.gc(); //Eventuellement pour décharger des classes
 		} catch (IOException e) {
