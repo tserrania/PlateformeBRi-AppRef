@@ -1,8 +1,8 @@
 package appli;
 
 import bri.ServeurBRi;
-import bri.ServiceBRiProg;
-import bri.ServiceBRiAma;
+import bri.services.ServiceBRiAma;
+import bri.services.ServiceBRiProg;
 
 public class BRiLaunch {
 	private final static int PORT_PROG = 8686;

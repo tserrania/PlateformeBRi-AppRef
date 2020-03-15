@@ -1,6 +1,6 @@
 package bri;
 
-interface ServiceBRi extends Runnable {
+public interface ServiceBRi extends Runnable {
 
 	void start();
 	

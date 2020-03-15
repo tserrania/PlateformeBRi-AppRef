@@ -1,4 +1,4 @@
-package bri;
+package bri.util;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -9,6 +9,8 @@ import java.net.Socket;
 import java.util.List;
 import java.util.Vector;
 
+import bri.Service;
+
 /**
  * cette classe est un registre de services
  * partagée en concurrence par les clients et les "ajouteurs" de services,
@@ -18,10 +20,10 @@ import java.util.Vector;
  */
 public class ServiceRegistry {
 
-	private static List<ServiceEtat> servicesClasses;
+	private static List<EtatService> servicesClasses;
 
 	static {
-		servicesClasses = new Vector<ServiceEtat>();
+		servicesClasses = new Vector<EtatService>();
 	}
 	
 
@@ -127,9 +129,9 @@ public class ServiceRegistry {
 	 */
 	public static void addService(Class<?> service, String login) throws Exception {
 		validService(service, login);
-		ServiceEtat sr = null;
+		EtatService sr = null;
 		synchronized (servicesClasses) {
-			for (ServiceEtat s : servicesClasses) {
+			for (EtatService s : servicesClasses) {
 				if (s.getService().getName().equals(service.getName())) {
 					sr = s;
 					break;
@@ -140,7 +142,7 @@ public class ServiceRegistry {
 			sr.setService(service);
 		}
 		else {
-			servicesClasses.add(new ServiceEtat(service));
+			servicesClasses.add(new EtatService(service));
 		}
 	}
 
@@ -152,7 +154,7 @@ public class ServiceRegistry {
 	 * @throws Exception 
 	 */
 	public static boolean changeStateService(int numService, String login) throws Exception {
-		ServiceEtat s = servicesClasses.get(numService-1);
+		EtatService s = servicesClasses.get(numService-1);
 		validLogin(s.getService(), login);
 		if (s.estActif()) {
 			s.arreter();
@@ -169,7 +171,7 @@ public class ServiceRegistry {
 	 * @throws Exception 
 	 */
 	public static void delService(int numService, String login) throws Exception {
-		ServiceEtat s = servicesClasses.get(numService-1);
+		EtatService s = servicesClasses.get(numService-1);
 		validLogin(s.getService(), login);
 		servicesClasses.remove(s);
 	}
@@ -181,7 +183,7 @@ public class ServiceRegistry {
 	 * @throws Exception 
 	 */
 	public static Class<?> getServiceClass(int numService) throws Exception {
-		ServiceEtat s = servicesClasses.get(numService-1);
+		EtatService s = servicesClasses.get(numService-1);
 		if (!s.estActif()) {
 			throw new Exception("Le service est indisponible.");
 		}
@@ -194,7 +196,7 @@ public class ServiceRegistry {
 	public static String toStringue() {
 		String result = "Activités présentes : ##";
 		int i = 0;
-		for (ServiceEtat s : servicesClasses)  {
+		for (EtatService s : servicesClasses)  {
 			try {
 				result += (i+1);
 				if (!s.estActif()) {

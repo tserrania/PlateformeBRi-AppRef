@@ -1,14 +1,14 @@
-package bri;
+package bri.util;
 
 /**
  * Une encapsulation d'un service avec son état (démarré ou non)
  * @author tyefen
  *
  */
-public class ServiceEtat {
+public class EtatService {
 	private Class<?> service;
 	private boolean actif;
-	public ServiceEtat(Class<?> service) {
+	public EtatService(Class<?> service) {
 		this.service = service;
 		this.actif = true;
 	}

@@ -1,9 +1,15 @@
-package bri;
+package bri.services;
 
 
-import java.io.*;
-import java.lang.reflect.InvocationTargetException;
-import java.net.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
+
+import bri.Service;
+import bri.ServiceBRi;
+import bri.util.ServiceRegistry;
 
 /**
  * Le service BRi côté client amateur

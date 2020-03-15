@@ -1,4 +1,4 @@
-package bri;
+package bri.services;
 
 
 import java.io.BufferedReader;
@@ -11,6 +11,9 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.jar.JarFile;
 
+import bri.Service;
+import bri.ServiceBRi;
+import bri.util.ServiceRegistry;
 import login.ProgList;
 
 /*
@@ -55,10 +58,11 @@ public class ServiceBRiProg implements ServiceBRi {
 				while (true){
 					msg += "Que voulez-vous faire ?##"
 							+ "1 - Ajouter / Mettre à jour un service##"
-							+ "2 - Changer de serveur ftp##"
-							+ "3 - Démarrer / Arrêter un service##"
-							+ "4 - Supprimer un service##"
-							+ "5 - Quitter";
+							+ "2 - Ajouter / Mettre à jour depuis un JAR##"
+							+ "3 - Changer de serveur ftp##"
+							+ "4 - Démarrer / Arrêter un service##"
+							+ "5 - Supprimer un service##"
+							+ "6 - Quitter";
 					out.println(msg);
 					String choix = in.readLine();
 					try {
@@ -77,13 +81,30 @@ public class ServiceBRiProg implements ServiceBRi {
 							urlcl.close();
 						}
 						else if (choix.equals("2")) {
+							msg = "Quelle bibliothèque JAR voulez-vous charger ?";
+							out.println(msg);
+							String jarurl = in.readLine();
+							msg = "Quelle est la classe principale ?";
+							out.println(msg);
+							msg = "";
+							// charger la classe et la déclarer au ServiceRegistry
+							URL[] tabURL={new URL(jarurl)};
+							URLClassLoader urlcl = new URLClassLoader(tabURL);
+							Class<? extends Runnable> classeChargée;
+							classeChargée = (Class<? extends Service>) urlcl.loadClass(in.readLine());
+							msg += classeChargée.getName()+"##";
+							ServiceRegistry.addService(classeChargée, login);
+							msg += "Classe chargée.##";
+							urlcl.close();
+						}
+						else if (choix.equals("3")) {
 							msg = "Nouvelle URL :";
 							out.println(msg);
 							url = in.readLine();
 							ProgList.changeURL(login, url);
 							msg = "URL changée !##";
 						}
-						else if (choix.equals("3")) {
+						else if (choix.equals("4")) {
 							msg = ServiceRegistry.toStringue()+"##Tapez le numéro de service désiré :";
 							out.println(msg);
 							msg = "";
@@ -98,7 +119,7 @@ public class ServiceBRiProg implements ServiceBRi {
 							}
 							
 						} 
-						else if (choix.equals("4")) {
+						else if (choix.equals("5")) {
 							msg = ServiceRegistry.toStringue()+"##Tapez le numéro de service désiré :";
 							out.println(msg);
 							int choix_service = Integer.parseInt(in.readLine());
@@ -106,7 +127,7 @@ public class ServiceBRiProg implements ServiceBRi {
 							ServiceRegistry.delService(choix_service, login);
 							msg = "Service supprimé !##";
 						} 
-						else if (choix.equals("5")) {
+						else if (choix.equals("6")) {
 							break;
 						} 
 						else {
